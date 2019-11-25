@@ -1,6 +1,5 @@
-# spring-boot-codelab
-
 ## Spring Boot API Server
+- JPA를 이용한 REST API 서버 구현(CRUD)
 - Embeded Tomcat 이용한 단독 실행
 - Spring Actuator: 모니터링과 관리
 
@@ -89,8 +88,160 @@ server:
     1. @PutMapping("/departments/{id}")
 1. DELETE
     1. @DeleteMapping("/departments/{id}")
+## ENTITY
+```JAVA
+@Entity
+@Table(name = "department")
+@Getter
+public class Department {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column
+    private String name;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "department_id")
+    private Collection<Member> members;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public void setCurrentTime() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(Department department) {
+        this.name = department.getName();
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+```
+## REPOSITORY
+```JAVA
+@Repository
+public interface DepartmentRepository extends JpaRepository<Department, Long> {
+
+    Optional<Department> findByName(String name);
+}
+```
+## SERVICE
+```JAVA
+@Service
+@AllArgsConstructor
+public class DepartmentService {
+
+    private DepartmentRepository departmentRepository;
+
+    public List<Department> getAllDepartments() {
+        return departmentRepository.findAll();
+    }
+
+    public Department getDepartment(Long id) {
+        Department department = departmentRepository.findById(id).orElse(null);
+
+        if (department == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department Not Found");
+        } else {
+            return department;
+        }
+    }
+
+    public Department getDepartmentByName(String name) {
+        Department department = departmentRepository.findByName(name).orElse(null);
+
+        if (department == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department Not Found");
+        } else {
+            return department;
+        }
+    }
+
+    public Department createDepartment(Department department) {
+        department.setCurrentTime();
+
+        return departmentRepository.save(department);
+    }
+
+    public Department updateDepartment(Long id, Department department) {
+        Department savedDepartment = departmentRepository.findById(id).orElse(null);
+
+        if (savedDepartment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department Not Found");
+        } else {
+            savedDepartment.update(department);
+
+            return departmentRepository.save(savedDepartment);
+        }
+    }
+
+    public void deleteDepartment(Long id) {
+        if (departmentRepository.findById(id).isPresent()) {
+            departmentRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department Not Found");
+        }
+    }
+}
+```
 ## CONTROLLER
 ```JAVA
+@RestController
+@RequestMapping("/api")
+@AllArgsConstructor
+public class DepartmentController {
 
+    private DepartmentService departmentService;
+
+    @GetMapping("/departments")
+    @ApiOperation(value = "전체 부서 조회", notes = "모든 부서를 조회하는 API")
+    public ResponseEntity<?> getAllDepartments() {
+        List<Department> departments = departmentService.getAllDepartments();
+
+        return ResponseEntity.ok(departments);
+    }
+
+    @GetMapping("/departments/{id}")
+    @ApiOperation(value = "부서 검색", notes = "ID로 부서를 검색하는 API")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "부서 ID", paramType = "path", dataType = "Long")
+    })
+    public ResponseEntity<?> getDepartment(@PathVariable Long id) {
+        Department department = departmentService.getDepartment(id);
+
+        return ResponseEntity.ok(department);
+    }
+
+    @GetMapping("/departments/name")
+    public ResponseEntity<?> getDepartmentByName(@RequestParam String name) {
+        Department department = departmentService.getDepartmentByName(name);
+
+        return ResponseEntity.ok(department);
+    }
+
+    @PostMapping("/departments")
+    public ResponseEntity<?> createDepartment(@RequestBody Department department) {
+        return new ResponseEntity<>(departmentService.createDepartment(department), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/departments/{id}")
+    public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
+        return new ResponseEntity<>(departmentService.updateDepartment(id, department), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/departments/{id}")
+    public ResponseEntity<?> deleteDepartment(@PathVariable Long id) {
+        departmentService.deleteDepartment(id);
+
+        return new ResponseEntity<>("{}", HttpStatus.OK);
+    }
+}
 ```
