@@ -63,9 +63,9 @@ server:
 1. Department
     1. package: entity(VO)
     1. class: Department
-        1. @Entity
+        1. @Entity  ()
         1. @Table
-        1. @Getter
+        1. @Getter  (Lombok)
     1. DepartmentRepository
         1. package: repository
         1. interface: DepartmentRepository
