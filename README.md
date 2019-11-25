@@ -63,18 +63,28 @@ server:
 1. Department
     1. package: entity(VO)
     1. class: Department
-        1. @Entity  ()
-        1. @Table
-        1. @Getter  (Lombok)
+        1. `@Entity` - `DB와 Mapping되는 모델`
+        1. `@Table`
+        1. @Getter - `Lombok`
+        1. `@Coulum` - `Annotation은 데이터베이스 컬럼으로 지정, 컬럼명과 Mapping됨`
     1. DepartmentRepository
-        1. package: repository
+        1. package: repository - `Interface역할, JpaRepository<Entity, 기본키 타입> 을 extends하면 기본적인 CRUD가 자동으로 생성`
         1. interface: DepartmentRepository
-        1. Anotation: @Repository
+        1. Anotation: `@Repository`
     1. DepartmentService
         1. package: service
         1. interface: DepartmentService
-        1. Anotation: @Service
+        1. Anotation: `@Service`
     1. DepartmentController
         1. package: controller
         1. class: DepartmentController
-        1. Anotation: @Controller
+        1. Anotation: `@Controller`
+## CRUD
+1. GET
+    1. @PathVariable
+    1. @RequestParam
+1. POST
+    1. @RequestBody
+1. PUT
+1. DELETE
+
