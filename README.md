@@ -80,11 +80,17 @@ server:
         1. class: DepartmentController
         1. Anotation: `@Controller`
 ## CRUD
+1. `@RestController` - REST API를 사용하기 위한 Anotation, Json/Xml 형태로 객체 데이터를 반환
 1. GET
-    1. @PathVariable
-    1. @RequestParam
+    1. @GetMapping("/departments")
 1. POST
-    1. @RequestBody
+    1. @PostMapping("/departments")
 1. PUT
+    1. @PutMapping("/departments/{id}")
 1. DELETE
+    1. @DeleteMapping("/departments/{id}")
 
+## CONTROLLER
+```JAVA
+
+```
